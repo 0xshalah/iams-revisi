@@ -241,8 +241,8 @@ class Asset(db.Model, TimestampMixin):
     network_detail: Mapped['NetworkDetail | None'] = relationship(
         'NetworkDetail', back_populates='asset', uselist=False, cascade='all, delete-orphan'
     )
-    credential: Mapped['AssetCredential | None'] = relationship(
-        'AssetCredential', back_populates='asset', uselist=False, cascade='all, delete-orphan'
+    credentials: Mapped[list['AssetCredential']] = relationship(
+        'AssetCredential', back_populates='asset', cascade='all, delete-orphan'
     )
 
     def to_dict(self):
@@ -271,7 +271,7 @@ class Asset(db.Model, TimestampMixin):
             'mac_address': self.network_detail.mac_address if self.network_detail else None,
             'hostname': self.network_detail.hostname if self.network_detail else None,
             'vlan': self.network_detail.vlan if self.network_detail else None,
-            'has_credential': self.credential is not None,
+            'has_credential': len(self.credentials) > 0,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
         }
@@ -304,11 +304,14 @@ class AssetCredential(db.Model, TimestampMixin):
     __tablename__ = 'asset_credentials'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    asset_id: Mapped[int] = mapped_column(ForeignKey('assets.id'), nullable=False, unique=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey('assets.id'), nullable=False)
+    credential_type: Mapped[str] = mapped_column(String(50), nullable=False, default='SSH')
+    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     encrypted_secret: Mapped[str] = mapped_column(Text, nullable=False)
     nonce: Mapped[str] = mapped_column(String(200), nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    asset: Mapped['Asset'] = relationship('Asset', back_populates='credential')
+    asset: Mapped['Asset'] = relationship('Asset', back_populates='credentials')
 
 
 class Incident(db.Model, TimestampMixin):

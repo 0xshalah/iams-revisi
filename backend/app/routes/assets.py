@@ -6,7 +6,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 from app.extensions import db
 from app.models import Asset, AssetCredential, NetworkDetail
 from app.utils.audit import log_audit
-from app.utils.decorators import admin_or_operator, audit_action, require_csrf, require_role
+from app.utils.decorators import admin_only, admin_or_operator, audit_action, require_csrf, require_role
 from app.utils.pagination import paginate
 from app.utils.security import decrypt_secret, encrypt_secret
 
@@ -94,7 +94,12 @@ def create_asset():
     credential_plain = (data.get('credential') or '').strip()
     if credential_plain:
         enc, nonce = encrypt_secret(credential_plain, current_app.config['AES_KEY'])
-        db.session.add(AssetCredential(asset_id=asset.id, encrypted_secret=enc, nonce=nonce))
+        db.session.add(AssetCredential(
+            asset_id=asset.id,
+            credential_type=data.get('credential_type', 'SSH'),
+            username=(data.get('credential_username') or '').strip() or None,
+            encrypted_secret=enc, nonce=nonce,
+        ))
         log_audit('CREATE', 'asset_credential', resource_id=asset.id, status='success',
                   metadata={'action': 'credential_created'})
 
@@ -205,40 +210,112 @@ def update_network_details(asset_id):
     return jsonify({'data': nd.to_dict()})
 
 
-@bp.route('/<int:asset_id>/credential-status', methods=['GET'])
+# ── Multi-credential endpoints (1:N per asset) ─────────────────────────────
+
+@bp.route('/<int:asset_id>/credentials', methods=['GET'])
 @admin_or_operator
-def credential_status(asset_id):
-    """Return only whether a credential exists; never plaintext."""
+def list_credentials(asset_id):
+    """List credentials for an asset (no password)."""
     asset = db.session.get(Asset, asset_id)
     if not asset:
         return jsonify({'error': 'Asset not found'}), 404
-    has_credential = asset.credential is not None
-    if has_credential:
-        log_audit('ACCESS', 'asset_credential', resource_id=asset.id, status='success',
-                  metadata={'action': 'credential_status_check', 'by_user': g.current_user_id})
-    return jsonify({'data': {'has_credential': has_credential}})
+    return jsonify({'data': [{
+        'id': c.id, 'credential_type': c.credential_type,
+        'username': c.username, 'notes': c.notes,
+        'created_at': c.created_at.isoformat(), 'updated_at': c.updated_at.isoformat(),
+    } for c in asset.credentials]})
 
 
-@bp.route('/<int:asset_id>/credential', methods=['PUT'])
+@bp.route('/<int:asset_id>/credentials', methods=['POST'])
 @admin_or_operator
 @require_csrf
-@audit_action('UPDATE', 'asset_credential', resource_id_key='asset_id')
-def update_credential(asset_id):
-    """Store or rotate encrypted credential. Plaintext is never persisted."""
+def create_credential(asset_id):
+    """Add a new credential to an asset."""
     asset = db.session.get(Asset, asset_id)
     if not asset:
         return jsonify({'error': 'Asset not found'}), 404
     data = request.get_json(silent=True) or {}
-    plaintext = data.get('credential')
-    cred = asset.credential
-    if plaintext is not None and plaintext.strip():
-        enc, nonce = encrypt_secret(plaintext.strip(), current_app.config['AES_KEY'])
-        if not cred:
-            cred = AssetCredential(asset_id=asset.id)
-            db.session.add(cred)
+    plaintext = (data.get('password') or '').strip()
+    if not plaintext:
+        return jsonify({'error': 'password is required'}), 400
+    enc, nonce = encrypt_secret(plaintext, current_app.config['AES_KEY'])
+    cred = AssetCredential(
+        asset_id=asset_id,
+        credential_type=data.get('credential_type', 'SSH'),
+        username=(data.get('username') or '').strip() or None,
+        encrypted_secret=enc, nonce=nonce,
+        notes=(data.get('notes') or '').strip() or None,
+    )
+    db.session.add(cred)
+    db.session.commit()
+    log_audit('CREATE', 'asset_credential', resource_id=asset_id, status='success',
+              metadata={'credential_id': cred.id, 'type': cred.credential_type, 'by_user': g.current_user_id})
+    return jsonify({'data': {'id': cred.id, 'credential_type': cred.credential_type, 'username': cred.username, 'notes': cred.notes}}), 201
+
+
+@bp.route('/<int:asset_id>/credentials/<int:cred_id>', methods=['PUT'])
+@admin_or_operator
+@require_csrf
+def update_credential(asset_id, cred_id):
+    """Update credential fields or rotate password."""
+    cred = AssetCredential.query.filter_by(id=cred_id, asset_id=asset_id).first()
+    if not cred:
+        return jsonify({'error': 'Credential not found'}), 404
+    data = request.get_json(silent=True) or {}
+    if 'credential_type' in data:
+        cred.credential_type = data['credential_type']
+    if 'username' in data:
+        cred.username = (data['username'] or '').strip() or None
+    if 'notes' in data:
+        cred.notes = (data['notes'] or '').strip() or None
+    plaintext = (data.get('password') or '').strip()
+    if plaintext:
+        enc, nonce = encrypt_secret(plaintext, current_app.config['AES_KEY'])
         cred.encrypted_secret = enc
         cred.nonce = nonce
-    elif cred and data.get('remove'):
-        db.session.delete(cred)
     db.session.commit()
-    return jsonify({'data': {'has_credential': asset.credential is not None}})
+    log_audit('UPDATE', 'asset_credential', resource_id=asset_id, status='success',
+              metadata={'credential_id': cred_id, 'by_user': g.current_user_id})
+    return jsonify({'data': {'id': cred.id, 'credential_type': cred.credential_type, 'username': cred.username, 'notes': cred.notes}})
+
+
+@bp.route('/<int:asset_id>/credentials/<int:cred_id>', methods=['DELETE'])
+@admin_only
+@require_csrf
+def delete_credential(asset_id, cred_id):
+    """Delete a credential."""
+    cred = AssetCredential.query.filter_by(id=cred_id, asset_id=asset_id).first()
+    if not cred:
+        return jsonify({'error': 'Credential not found'}), 404
+    db.session.delete(cred)
+    db.session.commit()
+    log_audit('DELETE', 'asset_credential', resource_id=asset_id, status='success',
+              metadata={'credential_id': cred_id, 'by_user': g.current_user_id})
+    return jsonify({'message': 'Credential deleted'})
+
+
+@bp.route('/<int:asset_id>/credentials/<int:cred_id>/reveal', methods=['GET'])
+@admin_only
+def reveal_credential(asset_id, cred_id):
+    """Reveal decrypted password — always audited."""
+    cred = AssetCredential.query.filter_by(id=cred_id, asset_id=asset_id).first()
+    if not cred:
+        return jsonify({'error': 'Credential not found'}), 404
+    try:
+        plaintext = decrypt_secret(cred.encrypted_secret, cred.nonce, current_app.config['AES_KEY'])
+    except ValueError:
+        return jsonify({'error': 'Credential decryption failed'}), 500
+    log_audit('REVEAL', 'asset_credential', resource_id=asset_id, status='success',
+              metadata={'credential_id': cred_id, 'type': cred.credential_type, 'by_user': g.current_user_id})
+    return jsonify({'data': {'password': plaintext}})
+
+
+@bp.route('/<int:asset_id>/credential-status', methods=['GET'])
+@admin_or_operator
+def credential_status(asset_id):
+    """Return credential count (no plaintext)."""
+    asset = db.session.get(Asset, asset_id)
+    if not asset:
+        return jsonify({'error': 'Asset not found'}), 404
+    count = len(asset.credentials)
+    return jsonify({'data': {'has_credential': count > 0, 'count': count}})
