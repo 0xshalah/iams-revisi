@@ -33,6 +33,12 @@ const confirmDeleteOpen = ref(false)
 const pendingDelete = ref(null)
 const deleting = ref(false)
 
+// Role management
+const roleFormOpen = ref(false)
+const roleForm = ref({ name: '' })
+const editingRole = ref(null)
+const roleLoading = ref(false)
+
 async function load() {
   loading.value = true
   error.value = null
@@ -95,6 +101,35 @@ async function confirmDelete() {
     confirmDeleteOpen.value = false
     pendingDelete.value = null
   }
+}
+
+// Role CRUD
+function openRoleCreate() { editingRole.value = null; roleForm.value = { name: '' }; roleFormOpen.value = true }
+function openRoleEdit(role) { editingRole.value = role; roleForm.value = { name: role.name }; roleFormOpen.value = true }
+
+async function saveRole() {
+  roleLoading.value = true
+  try {
+    if (editingRole.value) {
+      await apiClient.updateRole(editingRole.value.id, roleForm.value)
+      roles.value = roles.value.map(r => r.id === editingRole.value.id ? { ...r, name: roleForm.value.name } : r)
+      ui.pushToast({ title: 'Berhasil', description: 'Role diperbarui.', variant: 'success' })
+    } else {
+      const r = await apiClient.createRole(roleForm.value)
+      roles.value.push(r.data)
+      ui.pushToast({ title: 'Berhasil', description: 'Role ditambahkan.', variant: 'success' })
+    }
+    roleFormOpen.value = false
+  } catch (err) { ui.pushToast({ title: 'Gagal', description: err.data?.error || 'Terjadi kesalahan.', variant: 'destructive' }) }
+  finally { roleLoading.value = false }
+}
+
+async function deleteRole(role) {
+  try {
+    await apiClient.deleteRole(role.id)
+    roles.value = roles.value.filter(r => r.id !== role.id)
+    ui.pushToast({ title: 'Berhasil', description: 'Role dihapus.', variant: 'success' })
+  } catch (err) { ui.pushToast({ title: 'Gagal', description: err.data?.error || 'Tidak dapat menghapus role.', variant: 'destructive' }) }
 }
 </script>
 
@@ -168,6 +203,51 @@ async function confirmDelete() {
         </table>
       </div>
     </Card>
+
+    <!-- Roles -->
+    <Card class="overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
+        <h3 class="text-sm font-semibold">Roles</h3>
+        <Button size="xs" @click="openRoleCreate">+ Role</Button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th class="text-left font-semibold px-4 py-2">Nama Role</th>
+              <th class="text-left font-semibold px-4 py-2">Status</th>
+              <th class="px-4 py-2 w-32"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            <tr v-for="role in roles" :key="role.id" class="hover:bg-secondary/40">
+              <td class="px-4 py-2.5 font-medium">{{ role.name }}</td>
+              <td class="px-4 py-2.5"><StatusBadge :value="role.is_active ? 'active' : 'inactive'" kind="user" /></td>
+              <td class="px-4 py-2.5 text-right">
+                <div class="flex justify-end gap-2">
+                  <button class="text-xs text-primary hover:underline" @click="openRoleEdit(role)">Edit</button>
+                  <button v-if="role.name !== 'Administrator' && role.name !== 'Operator'" class="text-xs text-destructive hover:underline" @click="deleteRole(role)">Hapus</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Card>
+
+    <!-- Role modal -->
+    <div v-if="roleFormOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/50" @click="roleFormOpen = false"></div>
+      <div class="relative bg-card border border-border rounded-lg shadow-xl p-5 w-full max-w-sm mx-4 z-10">
+        <h3 class="text-sm font-semibold mb-3">{{ editingRole ? 'Edit Role' : 'Tambah Role' }}</h3>
+        <Label class="text-xs mb-1">Nama Role</Label>
+        <Input v-model="roleForm.name" placeholder="Nama role" class="h-8 text-[13px] px-2.5 mb-4" />
+        <div class="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" @click="roleFormOpen = false">Batal</Button>
+          <Button size="sm" :loading="roleLoading" :disabled="!roleForm.name.trim()" @click="saveRole">{{ editingRole ? 'Perbarui' : 'Simpan' }}</Button>
+        </div>
+      </div>
+    </div>
 
     <UserFormDialog
       v-model="formOpen"
