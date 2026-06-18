@@ -138,16 +138,8 @@ export const apiClient = {
 
   listRoles: () => get('/roles'),
   createRole: (payload) => post('/roles', payload),
-  getRole: (id) => get(`/roles/${id}`),
   updateRole: (id, payload) => put(`/roles/${id}`, payload),
   deleteRole: (id) => del(`/roles/${id}`),
-
-  // Master data
-  listDepartments: () => get('/departments'),
-  listLocations: () => get('/locations'),
-  listCategories: () => get('/categories'),
-  listBrands: () => get('/brands'),
-  listModels: () => get('/models'),
 
   // Assets
   listAssets: (params = {}) => {
@@ -166,7 +158,6 @@ export const apiClient = {
   updateCredential: (id, cid, payload) => put(`/assets/${id}/credentials/${cid}`, payload),
   deleteCredential: (id, cid) => del(`/assets/${id}/credentials/${cid}`),
   revealCredential: (id, cid) => get(`/assets/${id}/credentials/${cid}/reveal`),
-  updateCredential: (id, payload) => put(`/assets/${id}/credential`, payload),
 
   // Incidents
   listIncidents: (params = {}) => {
@@ -262,9 +253,6 @@ export const apiClient = {
   assetStatusSummary: () => get('/reports/assets/status-summary'),
   assetsByPo: (poNumber) => get(`/reports/assets/by-po?po_number=${encodeURIComponent(poNumber)}`),
   assetsWarrantyExpiring: (months = 3) => get(`/reports/assets/warranty-expiring?months=${months}`),
-
-  // Dashboard compatibility helpers
-  getRecentActivities: () => Promise.resolve({ data: [], status: 200 }),
 }
 
 export default apiClient
