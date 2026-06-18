@@ -1,46 +1,106 @@
-:# IAMS — IT Asset Management System
+# IAMS — Infrastructure Asset Management System
 
-## Database
+[![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js)](https://vuejs.org)
+[![Flask](https://img.shields.io/badge/Flask-3-000?logo=flask)](https://flask.palletsprojects.com)
+[![MariaDB](https://img.shields.io/badge/MariaDB-10.11-003545?logo=mariadb)](https://mariadb.org)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://docker.com)
+[![License](https://img.shields.io/badge/License-MIT-green)](/LICENSE)
 
-IAMS runs on **MariaDB/MySQL**. The database schema is built in two layers:
+Dashboard internal untuk tim IT — pantau aset jaringan, tindak insiden, telusuri akar masalah, dan audit setiap perubahan. Dibangun dengan **Vue 3 + Flask + MariaDB + Docker Compose**.
 
-1. **Baseline schema** — `docs/database.mysql.compat.sql` is executed raw on
-   first MariaDB initialization. It contains the supervisor's core tables.
-2. **IAMS extensions** — Additional tables and columns for RBAC, authentication,
-   credential encryption, incident/problem management, and audit trail are
-   managed by **SQLAlchemy** models and **Alembic** migrations in `backend/`.
+![](https://img.shields.io/badge/PRD-100%25-brightgreen) ![](https://img.shields.io/badge/Tests-19%20passing-success) ![](https://img.shields.io/badge/Languages-ID%20%7C%20EN-blue)
 
-For full database documentation, see:
+---
 
-- [`docs/DATABASE.md`](docs/DATABASE.md) — schema overview, history, and
-  important notes.
-- [`docs/DATABASE_MAPPING.md`](docs/DATABASE_MAPPING.md) — strict mapping
-  between the supervisor's schema and the MariaDB implementation.
-- [`docs/database.original.mixed.sql`](docs/database.original.mixed.sql) —
-  supervisor's original file (MySQL DDL + SQL Server-style report queries;
-  preserved as-is, not executed directly).
-- [`docs/database.mysql.compat.sql`](docs/database.mysql.compat.sql) —
-  MariaDB/MySQL-compatible executable baseline schema.
-- [`docs/database.current.postgresql.sql`](docs/database.current.postgresql.sql)
-  — archived DDL snapshot of the previous PostgreSQL implementation.
+## Fitur
 
-### Source of truth
+| Modul | Deskripsi |
+|-------|-----------|
+| Dashboard | KPI cards, distribusi aset, status breakdown, compact no-scroll |
+| Asset Management | CRUD + serial unique + network detail + credential AES-256-GCM |
+| Incident Management | ITSM tracking, severity/status, assignee |
+| Problem Management | Root cause analysis, priority, owner |
+| Request Management | 7 tipe request, filter status/priority, due date |
+| Change Management | Approve/reject workflow, risk/impact assessment |
+| Master Data | Departments, Locations, Categories, Brands, Models — CRUD + delete safety |
+| Users & Roles | RBAC Administrator/Operator, deactivate, delete |
+| Reports | Full report, status summary, warranty watch, CSV export |
+| Audit Logs | Append-only, metadata redacted, admin-only |
+| Multi-language | Bahasa Indonesia & English, realtime switcher |
+| Theme | Light / Dark, View Transitions API 120fps |
+| Landing Page | Hero, features, FAQ, CTA — motion-v animations |
 
-The active database schema is defined in:
+## Tech Stack
 
-- `docs/database.mysql.compat.sql` — baseline schema
-- `backend/app/models.py` — SQLAlchemy models
-- `backend/migrations/versions/001_mysql_extensions.py` — extension migration
+| Layer | Teknologi |
+|-------|-----------|
+| Frontend | Vue 3 + Vite + Pinia + TailwindCSS + vue-i18n + motion-v |
+| Backend | Flask 3 + SQLAlchemy + Alembic + Gunicorn |
+| Database | MariaDB 10.11 (MySQL-compatible) |
+| Cache | Redis 7 (rate limiter) |
+| Reverse Proxy | Nginx (TLS 1.2/1.3, gzip, security headers) |
+| Container | Docker Compose |
+| Security | JWT HttpOnly, CSRF, CORS, bcrypt, AES-256-GCM, rate limiting |
 
-Do not edit the SQL snapshot files and expect the database to change; update
-the SQLAlchemy models and create a new Alembic migration instead.
+## Quick Start
 
-### Rollback
+```bash
+# 1. Clone
+git clone https://github.com/0xshalah/iams-revisi.git
+cd iams-revisi
 
-The previous PostgreSQL implementation is archived in `backups/` for rollback
-purposes.
+# 2. Setup environment
+cp .env.example .env
+# Edit .env — generate JWT_SECRET and AES_KEY_BASE64
 
-## Deployment
+# 3. Run
+docker compose up --build -d
 
-See [`docs/PRODUCTION_HARDENING.md`](docs/PRODUCTION_HARDENING.md) for the
-production hardening checklist and security cleanup guide.
+# 4. Open
+# Landing:  https://localhost
+# Login:    https://localhost/login
+# Admin:    admin@iams.local / admin123
+# Operator: operator@iams.local / operator123
+```
+
+## Default Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Administrator | admin@iams.local | admin123 |
+| Operator | operator@iams.local | operator123 |
+
+## Project Structure
+
+```
+├── frontend/          Vue 3 + Vite + Tailwind
+├── backend/           Flask + SQLAlchemy
+│   ├── app/
+│   │   ├── models.py       SQLAlchemy models
+│   │   ├── routes/         API blueprints
+│   │   └── utils/          Security, audit, pagination, decorators
+│   ├── migrations/    Alembic migrations
+│   └── tests/         19 pytest integration tests
+├── nginx/             Reverse proxy + SSL config
+├── docs/              DATABASE.md, DATABASE_MAPPING.md, PRODUCTION_HARDENING.md
+├── backups/           PostgreSQL rollback files
+├── database.sql       Supervisor's original schema
+└── docker-compose.yml
+```
+
+## Documentation
+
+- [`docs/DATABASE.md`](docs/DATABASE.md) — Schema overview & history
+- [`docs/DATABASE_MAPPING.md`](docs/DATABASE_MAPPING.md) — Strict mapping database.sql ↔ MariaDB
+- [`docs/PRODUCTION_HARDENING.md`](docs/PRODUCTION_HARDENING.md) — Deployment checklist
+
+## Test
+
+```bash
+docker exec -e RATELIMIT_ENABLED=false iams_backend python -m pytest tests/test_security.py -v
+# 19 passed
+```
+
+## License
+
+MIT
