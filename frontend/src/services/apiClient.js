@@ -137,9 +137,6 @@ export const apiClient = {
   deleteUser: (id) => del(`/users/${id}`),
 
   listRoles: () => get('/roles'),
-  createRole: (payload) => post('/roles', payload),
-  updateRole: (id, payload) => put(`/roles/${id}`, payload),
-  deleteRole: (id) => del(`/roles/${id}`),
 
   // Assets
   listAssets: (params = {}) => {

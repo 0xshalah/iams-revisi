@@ -11,7 +11,6 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
 import TableSkeleton from '@/components/ui/TableSkeleton.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import Dialog from '@/components/ui/Dialog.vue'
 import UserFormDialog from '@/components/users/UserFormDialog.vue'
 import { useUiStore } from '@/stores/ui'
 import { formatDate } from '@/lib/utils'
@@ -33,12 +32,6 @@ const deactivating = ref(false)
 const confirmDeleteOpen = ref(false)
 const pendingDelete = ref(null)
 const deleting = ref(false)
-
-// Role management
-const roleFormOpen = ref(false)
-const roleForm = ref({ name: '' })
-const editingRole = ref(null)
-const roleLoading = ref(false)
 
 async function load() {
   loading.value = true
@@ -104,34 +97,6 @@ async function confirmDelete() {
   }
 }
 
-// Role CRUD
-function openRoleCreate() { editingRole.value = null; roleForm.value = { name: '' }; roleFormOpen.value = true }
-function openRoleEdit(role) { editingRole.value = role; roleForm.value = { name: role.name }; roleFormOpen.value = true }
-
-async function saveRole() {
-  roleLoading.value = true
-  try {
-    if (editingRole.value) {
-      await apiClient.updateRole(editingRole.value.id, roleForm.value)
-      roles.value = roles.value.map(r => r.id === editingRole.value.id ? { ...r, name: roleForm.value.name } : r)
-      ui.pushToast({ title: 'Berhasil', description: 'Role diperbarui.', variant: 'success' })
-    } else {
-      const r = await apiClient.createRole(roleForm.value)
-      roles.value.push(r.data)
-      ui.pushToast({ title: 'Berhasil', description: 'Role ditambahkan.', variant: 'success' })
-    }
-    roleFormOpen.value = false
-  } catch (err) { ui.pushToast({ title: 'Gagal', description: err.data?.error || 'Terjadi kesalahan.', variant: 'destructive' }) }
-  finally { roleLoading.value = false }
-}
-
-async function deleteRole(role) {
-  try {
-    await apiClient.deleteRole(role.id)
-    roles.value = roles.value.filter(r => r.id !== role.id)
-    ui.pushToast({ title: 'Berhasil', description: 'Role dihapus.', variant: 'success' })
-  } catch (err) { ui.pushToast({ title: 'Gagal', description: err.data?.error || 'Tidak dapat menghapus role.', variant: 'destructive' }) }
-}
 </script>
 
 <template>
@@ -204,51 +169,6 @@ async function deleteRole(role) {
         </table>
       </div>
     </Card>
-
-    <!-- Roles -->
-    <Card class="p-4 mt-4">
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <h3 class="text-sm font-semibold">Roles</h3>
-        <Button size="sm" @click="openRoleCreate">+ Tambah Role</Button>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs">
-          <thead>
-            <tr class="border-b text-left">
-              <th class="py-2 px-2 font-medium text-muted-foreground">Nama Role</th>
-              <th class="py-2 px-2 font-medium text-muted-foreground">Status</th>
-              <th class="py-2 px-2 font-medium text-muted-foreground w-32">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="role in roles" :key="role.id" class="border-b hover:bg-muted/50 transition-colors">
-              <td class="py-1.5 px-2 font-medium">{{ role.name }}</td>
-              <td class="py-1.5 px-2"><StatusBadge :value="role.is_active ? 'active' : 'inactive'" kind="user" /></td>
-              <td class="py-1.5 px-2">
-                <div class="flex items-center gap-1">
-                  <Button variant="ghost" size="xs" @click="openRoleEdit(role)">Edit</Button>
-                  <Button v-if="role.name !== 'Administrator' && role.name !== 'Operator'" variant="ghost" size="xs" class="text-destructive" @click="deleteRole(role)">Hapus</Button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </Card>
-
-    <!-- Role Dialog -->
-    <Dialog :model-value="roleFormOpen" :title="editingRole ? 'Edit Role' : 'Tambah Role'" compact @update:model-value="roleFormOpen = $event">
-      <div class="space-y-3">
-        <div>
-          <Label class="mb-0.5 text-xs">Nama Role</Label>
-          <Input v-model="roleForm.name" placeholder="Nama role" class="h-8 text-[13px] px-2.5" />
-        </div>
-      </div>
-      <template #footer>
-        <Button variant="ghost" size="sm" @click="roleFormOpen = false">Batal</Button>
-        <Button size="sm" :loading="roleLoading" :disabled="!roleForm.name.trim()" @click="saveRole">{{ editingRole ? 'Perbarui' : 'Simpan' }}</Button>
-      </template>
-    </Dialog>
 
     <UserFormDialog
       v-model="formOpen"
