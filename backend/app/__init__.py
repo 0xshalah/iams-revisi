@@ -69,6 +69,7 @@ def create_app(config_class=Config):
     from app.routes.health import bp as health_bp
     from app.routes.requests import bp as requests_bp
     from app.routes.changes import bp as changes_bp
+    from app.routes.snipe_features import bp as snipe_features_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
@@ -82,6 +83,7 @@ def create_app(config_class=Config):
     app.register_blueprint(health_bp)
     app.register_blueprint(requests_bp)
     app.register_blueprint(changes_bp)
+    app.register_blueprint(snipe_features_bp)
 
     from app.commands import seed_command
     app.cli.add_command(seed_command)

@@ -453,3 +453,58 @@ class ServiceRequest(db.Model, TimestampMixin):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
         }
+
+
+
+class AssetFile(db.Model, TimestampMixin):
+    """File attachments for assets."""
+    __tablename__ = 'asset_files'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey('assets.id'), nullable=False)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    original_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    size: Mapped[int] = mapped_column(Integer, nullable=False)
+    data: Mapped[bytes] = mapped_column(db.LargeBinary, nullable=False)
+    asset: Mapped['Asset'] = relationship('Asset')
+    def to_dict(self):
+        return {'id':self.id,'asset_id':self.asset_id,'filename':self.filename,'original_name':self.original_name,'mime_type':self.mime_type,'size':self.size,'created_at':self.created_at.isoformat()}
+
+class StatusLabel(db.Model, TimestampMixin):
+    """Custom asset status labels."""
+    __tablename__ = 'status_labels'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    deployable: Mapped[bool] = mapped_column(Boolean, default=True)
+    def to_dict(self):
+        return {'id':self.id,'name':self.name,'deployable':self.deployable}
+
+class SoftwareLicense(db.Model, TimestampMixin):
+    """Software license tracking."""
+    __tablename__ = 'software_licenses'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    product_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    seats: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    licensed_to_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    purchase_date: Mapped[_dt.date | None] = mapped_column(Date, nullable=True)
+    expiration_date: Mapped[_dt.date | None] = mapped_column(Date, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    def to_dict(self):
+        return {'id':self.id,'name':self.name,'product_key':self.product_key,'seats':self.seats,'licensed_to_email':self.licensed_to_email,'purchase_date':self.purchase_date.isoformat() if self.purchase_date else None,'expiration_date':self.expiration_date.isoformat() if self.expiration_date else None,'notes':self.notes,'created_at':self.created_at.isoformat(),'updated_at':self.updated_at.isoformat()}
+
+class CheckoutHistory(db.Model, TimestampMixin):
+    """Check-in/Check-out history."""
+    __tablename__ = 'checkout_history'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey('assets.id'), nullable=False)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
+    action: Mapped[str] = mapped_column(String(20), nullable=False)
+    expected_return_date: Mapped[_dt.date | None] = mapped_column(Date, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    checked_out_by: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
+    asset: Mapped['Asset'] = relationship('Asset', foreign_keys=[asset_id])
+    user: Mapped['User | None'] = relationship('User', foreign_keys=[user_id])
+    operator: Mapped['User | None'] = relationship('User', foreign_keys=[checked_out_by])
+    def to_dict(self):
+        return {'id':self.id,'asset_id':self.asset_id,'asset_tag':self.asset.asset_tag if self.asset else None,'user_id':self.user_id,'user_name':self.user.name if self.user else None,'action':self.action,'expected_return_date':self.expected_return_date.isoformat() if self.expected_return_date else None,'notes':self.notes,'created_at':self.created_at.isoformat()}
