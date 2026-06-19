@@ -19,7 +19,6 @@ const locale = useLocaleStore()
 const { t } = useI18n()
 
 const profileOpen = ref(false)
-const langOpen = ref(false)
 const notifOpen = ref(false)
 const notifications = ref([])
 const hasUnread = ref(false)
@@ -27,7 +26,6 @@ const hasUnread = ref(false)
 function closeAllMenus(e) {
   if (!e.target.closest('[data-menu-root]')) {
     profileOpen.value = false
-    langOpen.value = false
     notifOpen.value = false
   }
 }
@@ -107,24 +105,10 @@ function toggleProfile() {
           </span>
         </Button>
 
-        <!-- Language -->
-        <div class="relative" data-menu-root>
-          <Button variant="ghost" size="icon" aria-label="Language" @click.stop="toggleLang">
-            <span class="text-[11px] font-bold uppercase">{{ locale.current }}</span>
-          </Button>
-          <transition name="fade">
-            <div v-if="langOpen" class="absolute right-0 mt-2 w-44 card-surface shadow-xl p-1 animate-slide-down">
-              <button
-                v-for="code in locale.available" :key="code"
-                :class="['w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between hover:bg-secondary', locale.current===code && 'bg-secondary']"
-                @click="locale.setLocale(code); langOpen=false"
-              >
-                <span>{{ { id: 'Bahasa Indonesia', en: 'English' }[code] }}</span>
-                <svg v-if="locale.current===code" class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>
-              </button>
-            </div>
-          </transition>
-        </div>
+        <!-- Language — direct toggle, no dropdown -->
+        <Button variant="ghost" size="icon" aria-label="Language" @click.stop="locale.setLocale(locale.current==='id'?'en':'id')">
+          <span class="text-[11px] font-bold uppercase">{{ locale.current }}</span>
+        </Button>
 
         <!-- Notifications -->
         <div class="relative" data-menu-root>
