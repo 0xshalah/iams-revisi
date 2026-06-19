@@ -235,34 +235,6 @@ async function submit() {
       </div>
 
       <div class="sm:col-span-2 border-t border-border pt-2 mt-0.5">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Kredensial Perangkat</p>
-        <!-- Existing credentials -->
-        <div v-if="credentials.length" class="space-y-1.5 mb-2">
-          <div v-for="cred in credentials" :key="cred.id" class="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
-            <span class="text-[11px] font-medium min-w-[60px]">{{ cred.credential_type }}</span>
-            <span class="text-[10px] text-muted-foreground min-w-[50px]">{{ cred.username || '-' }}</span>
-            <input v-if="credReveal[cred.id]" :value="credReveal[cred.id]" readonly class="text-[11px] font-mono bg-transparent w-24" />
-            <span v-else class="text-[11px] font-mono text-muted-foreground">••••••••</span>
-            <span class="flex-1"></span>
-            <Button variant="ghost" size="xs" class="h-6 w-6 p-0 shrink-0" @click="revealCredential(cred.id)" title="Lihat">👁</Button>
-            <Button variant="ghost" size="xs" class="h-6 w-6 p-0 shrink-0" @click="editCredential(cred)" title="Edit">✎</Button>
-            <Button variant="ghost" size="xs" class="h-6 w-6 p-0 shrink-0 text-destructive" @click="deleteCredential(cred.id)" title="Hapus">✕</Button>
-          </div>
-        </div>
-        <!-- Add / Update form -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-          <Select v-model="credForm.credential_type" :options="credTypeOpts" class="h-7 text-[12px] px-2 col-span-2 sm:col-span-1" />
-          <Input v-model="credForm.username" placeholder="Username" class="h-7 text-[12px] px-2" />
-          <Input v-model="credForm.password" type="password" :placeholder="editingCredId ? 'Password (opsional)' : 'Password'" autocomplete="off" class="h-7 text-[12px] px-2" />
-          <div class="flex gap-1 col-span-2 sm:col-span-2">
-            <Button size="xs" class="h-7 text-[11px] flex-1" :disabled="!editingCredId && !credForm.password.trim()" @click="addOrUpdateCredential">{{ editingCredId ? 'Update' : '+ Tambah' }}</Button>
-            <Button v-if="editingCredId" variant="ghost" size="xs" class="h-7 text-[11px]" @click="cancelEdit">Batal</Button>
-          </div>
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-2 leading-relaxed">Password dienkripsi AES-256-GCM. Klik 👁 untuk melihat (tercatat di audit log).</p>
-      </div>
-
-      <div class="sm:col-span-2 border-t border-border pt-2 mt-0.5">
         <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Detail Jaringan</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
@@ -286,10 +258,34 @@ async function submit() {
     </div>
 
     <template #footer>
-      <Button variant="ghost" size="sm" @click="$emit('update:modelValue', false)">Batal</Button>
-      <Button size="sm" :loading="loading" :disabled="!form.asset_tag || !form.serial_number || !form.model_id || !form.location_id" @click="submit">
-        {{ isCreate ? 'Simpan Aset' : 'Perbarui' }}
-      </Button>
+      <!-- Credentials — pinned above buttons, always visible -->
+      <div v-if="!isCreate" class="w-full text-left border-t border-border pt-2 pb-1 mb-1">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Kredensial Perangkat</p>
+        <div v-if="credentials.length" class="space-y-1 mb-1.5">
+          <div v-for="cred in credentials" :key="cred.id" class="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-2 py-1">
+            <span class="text-[11px] font-medium">{{ cred.credential_type }}</span>
+            <span class="text-[10px] text-muted-foreground">{{ cred.username || '-' }}</span>
+            <span class="text-[11px] font-mono text-muted-foreground">••••••••</span>
+            <input v-if="credReveal[cred.id]" :value="credReveal[cred.id]" readonly class="text-[11px] font-mono bg-transparent w-20" />
+            <span class="flex-1"></span>
+            <Button variant="ghost" size="xs" class="h-6 w-6 p-0 shrink-0" @click="revealCredential(cred.id)" title="Lihat">👁</Button>
+            <Button variant="ghost" size="xs" class="h-6 w-6 p-0 shrink-0" @click="editCredential(cred)" title="Edit">✎</Button>
+            <Button variant="ghost" size="xs" class="h-6 w-6 p-0 shrink-0 text-destructive" @click="deleteCredential(cred.id)" title="Hapus">✕</Button>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-1">
+          <Select v-model="credForm.credential_type" :options="credTypeOpts" class="h-7 text-[11px] px-1.5" />
+          <Input v-model="credForm.username" placeholder="User" class="h-7 text-[11px] px-1.5" />
+          <Input v-model="credForm.password" type="password" placeholder="Pass" autocomplete="off" class="h-7 text-[11px] px-1.5 col-span-2 sm:col-span-2" />
+          <Button size="xs" class="h-7 text-[10px] sm:col-span-1" :disabled="!credForm.password.trim()" @click="addOrUpdateCredential">{{ editingCredId ? 'Update' : '+ Tambah' }}</Button>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 w-full">
+        <Button variant="ghost" size="sm" @click="$emit('update:modelValue', false)">Batal</Button>
+        <Button size="sm" :loading="loading" :disabled="!form.asset_tag || !form.serial_number || !form.model_id || !form.location_id" @click="submit">
+          {{ isCreate ? 'Simpan Aset' : 'Perbarui' }}
+        </Button>
+      </div>
     </template>
   </Dialog>
 </template>
