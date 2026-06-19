@@ -4,12 +4,16 @@ import { useI18n } from 'vue-i18n'
 import apiClient from '@/services/apiClient'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
 const assets = ref([])
 const incidents = ref([])
 const problems = ref([])
 const loading = ref(true)
+const lastUpdated = ref(null)
 
 onMounted(async () => {
   try {
@@ -21,11 +25,21 @@ onMounted(async () => {
     assets.value = a?.data?.data || a?.data || []
     incidents.value = i?.data?.data || i?.data || []
     problems.value = p?.data?.data || p?.data || []
-  } catch (err) {
-    console.error('Dashboard load error:', err)
+    lastUpdated.value = new Date()
+  } catch (_) {
+    // silently fail — dashboard shows empty state
   } finally {
     loading.value = false
   }
+})
+
+const timeAgo = computed(() => {
+  if (!lastUpdated.value) return ''
+  const sec = Math.floor((Date.now() - lastUpdated.value.getTime()) / 1000)
+  if (sec < 5) return t('dashboard.justNow')
+  if (sec < 60) return `${sec}s ${t('dashboard.ago')}`
+  const min = Math.floor(sec / 60)
+  return `${min}m ${t('dashboard.ago')}`
 })
 
 // KPIs
@@ -36,9 +50,9 @@ const criticalIncidents = computed(() => incidents.value.filter((i) => i.severit
 const activeProblems = computed(() => problems.value.filter((p) => p.status !== 'Closed').length)
 
 const networkStatus = computed(() => {
-  if (criticalIncidents.value > 0) return { label: 'Degraded', tone: 'destructive', detail: `${criticalIncidents.value} kritikal terbuka` }
-  if (openIncidents.value > 2) return { label: 'Watch', tone: 'warning', detail: `${openIncidents.value} insiden aktif` }
-  return { label: 'Operational', tone: 'success', detail: 'Semua sistem inti normal' }
+  if (criticalIncidents.value > 0) return { label: t('dashboard.degraded'), tone: 'destructive', detail: `${criticalIncidents.value} ${t('dashboard.criticalOpen')}` }
+  if (openIncidents.value > 2) return { label: t('dashboard.watch'), tone: 'warning', detail: `${openIncidents.value} ${t('dashboard.activeIncidents')}` }
+  return { label: t('dashboard.operational'), tone: 'success', detail: t('dashboard.allNormal') }
 })
 
 const distribution = computed(() => {
@@ -76,19 +90,28 @@ const toneDot = {
     <!-- Compact header row -->
     <div class="flex items-end justify-between gap-3 flex-wrap">
       <div>
-        <p class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Overview</p>
-        <h2 class="text-lg md:text-xl font-bold tracking-tight mt-0.5">Ringkasan Operasional</h2>
-        <p class="text-xs text-muted-foreground mt-0.5">Ringkasan aset, insiden, dan problem yang sedang aktif.</p>
+        <p class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{{ t('dashboard.overview') }}</p>
+        <h2 class="text-lg md:text-xl font-bold tracking-tight mt-0.5">{{ t('dashboard.summary') }}</h2>
+        <p class="text-xs text-muted-foreground mt-0.5">{{ t('dashboard.subtitle') }}</p>
       </div>
-      <div :class="['inline-flex items-center gap-2 rounded-full px-3 py-1.5 border text-xs', toneCls[networkStatus.tone]]" data-testid="network-status-card">
-        <span class="relative flex h-2 w-2">
-          <span :class="['absolute inset-0 rounded-full opacity-60 animate-ping', toneDot[networkStatus.tone]]"></span>
-          <span :class="['relative h-2 w-2 rounded-full', toneDot[networkStatus.tone]]"></span>
-        </span>
-        <span class="font-semibold uppercase tracking-wider">{{ networkStatus.label }}</span>
-        <span class="opacity-80">· {{ networkStatus.detail }}</span>
+      <div class="flex items-center gap-2">
+        <div :class="['inline-flex items-center gap-2 rounded-full px-3 py-1.5 border text-xs', toneCls[networkStatus.tone]]" data-testid="network-status-card">
+          <span class="relative flex h-2 w-2">
+            <span :class="['absolute inset-0 rounded-full opacity-60 animate-ping', toneDot[networkStatus.tone]]"></span>
+            <span :class="['relative h-2 w-2 rounded-full', toneDot[networkStatus.tone]]"></span>
+          </span>
+          <span class="font-semibold uppercase tracking-wider">{{ networkStatus.label }}</span>
+          <span class="opacity-80 hidden sm:inline">· {{ networkStatus.detail }}</span>
+        </div>
+        <div class="flex gap-1.5">
+          <Button size="xs" variant="outline" @click="router.push({name:'assets'})">+ {{ t('common.asset') }}</Button>
+          <Button size="xs" variant="outline" @click="router.push({name:'incidents'})">+ {{ t('common.incident') }}</Button>
+        </div>
       </div>
     </div>
+
+    <!-- Time context -->
+    <p v-if="timeAgo" class="text-[10px] text-muted-foreground">{{ t('dashboard.updated') }} {{ timeAgo }}</p>
 
     <!-- KPI cards -->
     <div class="grid grid-cols-2 xl:grid-cols-4 gap-3" data-testid="kpi-cards">
@@ -96,11 +119,11 @@ const toneDot = {
         <div class="absolute -top-2 -right-2 h-14 w-14 rounded-full bg-primary/10"></div>
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">Total Aset</p>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">{{ t('dashboard.totalAssets') }}</p>
             <p class="text-2xl font-bold tracking-tight mt-0.5 leading-none" data-testid="kpi-total-assets">{{ loading ? '—' : totalAssets }}</p>
             <p class="text-[11px] text-muted-foreground mt-1.5">
-              <span class="text-success font-medium">{{ activeAssets }}</span> aktif ·
-              <span class="text-info font-medium">{{ statusBreakdown.Available }}</span> tersedia
+              <span class="text-success font-medium">{{ activeAssets }}</span> {{ t('dashboard.active') }} ·
+              <span class="text-info font-medium">{{ statusBreakdown.Available }}</span> {{ t('dashboard.available') }}
             </p>
           </div>
           <div class="h-8 w-8 rounded-md bg-primary/10 text-primary grid place-items-center shrink-0">
@@ -113,10 +136,10 @@ const toneDot = {
         <div class="absolute -top-2 -right-2 h-14 w-14 rounded-full bg-warning/10"></div>
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">Incident Terbuka</p>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">{{ t('dashboard.openIncidents') }}</p>
             <p class="text-2xl font-bold tracking-tight mt-0.5 leading-none" data-testid="kpi-open-incidents">{{ loading ? '—' : openIncidents }}</p>
             <p class="text-[11px] text-muted-foreground mt-1.5">
-              <span class="text-destructive font-medium">{{ criticalIncidents }}</span> critical perlu eskalasi
+              <span class="text-destructive font-medium">{{ criticalIncidents }}</span> {{ t('dashboard.criticalNeed') }}
             </p>
           </div>
           <div class="h-8 w-8 rounded-md bg-warning/15 text-warning grid place-items-center shrink-0">
@@ -129,9 +152,9 @@ const toneDot = {
         <div class="absolute -top-2 -right-2 h-14 w-14 rounded-full bg-info/10"></div>
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">Problem Aktif</p>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">{{ t('dashboard.activeProblems') }}</p>
             <p class="text-2xl font-bold tracking-tight mt-0.5 leading-none" data-testid="kpi-active-problems">{{ loading ? '—' : activeProblems }}</p>
-            <p class="text-[11px] text-muted-foreground mt-1.5">Akar masalah diinvestigasi</p>
+            <p class="text-[11px] text-muted-foreground mt-1.5">{{ t('dashboard.investigating') }}</p>
           </div>
           <div class="h-8 w-8 rounded-md bg-info/10 text-info grid place-items-center shrink-0">
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -143,7 +166,7 @@ const toneDot = {
         <div class="absolute -top-2 -right-2 h-14 w-14 rounded-full bg-success/10"></div>
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">Status Jaringan</p>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-wider">{{ t('dashboard.netStatus') }}</p>
             <p class="text-2xl font-bold tracking-tight mt-0.5 leading-none" data-testid="kpi-network-status">{{ networkStatus.label }}</p>
             <p class="text-[11px] text-muted-foreground mt-1.5 line-clamp-1">{{ networkStatus.detail }}</p>
           </div>
@@ -159,10 +182,10 @@ const toneDot = {
       <Card class="p-4 lg:col-span-2">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Distribusi Aset</p>
-            <h3 class="text-sm font-semibold tracking-tight">Berdasarkan kategori</h3>
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ t('dashboard.assetDist') }}</p>
+            <h3 class="text-sm font-semibold tracking-tight">{{ t('dashboard.byCategory') }}</h3>
           </div>
-          <Badge variant="muted">{{ totalAssets }} aset</Badge>
+          <Badge variant="muted">{{ totalAssets }} {{ t('dashboard.assets') }}</Badge>
         </div>
         <div v-if="loading" class="space-y-2 animate-pulse">
           <div v-for="i in 5" :key="i" class="h-5 bg-muted rounded" />
@@ -188,8 +211,8 @@ const toneDot = {
       <Card class="p-4">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Status Aset</p>
-            <h3 class="text-sm font-semibold tracking-tight">Ringkasan</h3>
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ t('dashboard.assetStatus') }}</p>
+            <h3 class="text-sm font-semibold tracking-tight">{{ t('dashboard.summary') }}</h3>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2" data-testid="status-breakdown">
