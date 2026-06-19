@@ -85,7 +85,10 @@ const credTypeOpts = ['SSH', 'Web Console', 'SNMP', 'Telnet', 'RDP', 'API Key', 
 
 async function fetchCredentials() {
   if (!props.asset?.id) return
-  try { credentials.value = (await apiClient.listCredentials(props.asset.id)).data?.data || [] }
+  try {
+    const res = await apiClient.listCredentials(props.asset.id)
+    credentials.value = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+  }
   catch (_) { credentials.value = [] }
 }
 
