@@ -68,7 +68,7 @@ function reset() { query.value=''; actionFilter.value=''; statusFilter.value='' 
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-muted-foreground">Compliance</p>
-        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">Audit Logs</h2>
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">{{ t('pages.auditTitle') }}</h2>
         <p class="text-sm text-muted-foreground mt-1">Riwayat aktivitas sistem (Administrator only). Data sensitif telah dimasking.</p>
       </div>
       <Badge variant="info">Admin only</Badge>

@@ -159,11 +159,11 @@ async function executeDelete() {
   deleting.value = true
   try {
     await apiClient.deleteRequest(pendingDelete.value.id)
-    ui.pushToast({ title: 'Berhasil', description: 'Permintaan dihapus.', variant: 'success' })
+    ui.pushToast({ title: t('common.success'), description: `${t('toast.deleted')}.`, variant: 'success' })
     confirmOpen.value = false; pendingDelete.value = null
     load()
   } catch (err) {
-    ui.pushToast({ title: 'Gagal', description: err.data?.error || 'Gagal menghapus.', variant: 'destructive' })
+    ui.pushToast({ title: t('common.failed'), description: err.data?.error || t('pages.deleteFailed'), variant: 'destructive' })
   } finally { deleting.value = false }
 }
 
@@ -175,7 +175,7 @@ const typeLabel = (t) => ({ 'Asset Request': 'Aset', 'Repair Request': 'Perbaika
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <h1 class="text-lg font-bold tracking-tight">Requests</h1>
+        <h1 class="text-lg font-bold tracking-tight">{{ t('navigation.requests') }}</h1>
         <p class="text-xs text-muted-foreground mt-0.5">Kelola permintaan operasional IT.</p>
       </div>
       <Button size="sm" @click="openCreate">+ Buat Request</Button>

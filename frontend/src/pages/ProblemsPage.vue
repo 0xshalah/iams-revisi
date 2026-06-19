@@ -89,7 +89,7 @@ async function confirmDelete() {
   try {
     await apiClient.deleteProblem(pendingDelete.value.id)
     data.value = data.value.filter((i) => i.id !== pendingDelete.value.id)
-    ui.pushToast({ title: 'Problem dihapus', description: `${pendingDelete.value.code} dihapus.`, variant: 'success' })
+    ui.pushToast({ title: t('common.success'), description: `${pendingDelete.value.code} ${t('toast.deleted')}.`, variant: 'success' })
   } catch (err) {
     ui.pushToast({ title: 'Gagal menghapus', description: err.data?.error || 'Tidak dapat menghapus problem.', variant: 'destructive' })
   } finally {
@@ -110,7 +110,7 @@ const statusOpts = ['Open', 'Investigating', 'Known Error', 'Closed'].map((v) =>
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-muted-foreground">Problem Management</p>
-        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">Akar Masalah</h2>
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">{{ t('pages.problemsTitle') }}</h2>
         <p class="text-sm text-muted-foreground mt-1">Dokumentasikan root cause dari insiden berulang.</p>
       </div>
       <div class="flex items-center gap-2">

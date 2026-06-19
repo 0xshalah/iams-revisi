@@ -92,7 +92,7 @@ async function exportCsv() {
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-muted-foreground">Reports</p>
-        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">Laporan & Garansi</h2>
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">{{ t('pages.reportsTitle') }}</h2>
         <p class="text-sm text-muted-foreground mt-1">Pantau aset dengan garansi akan habis dan ekspor laporan aset.</p>
       </div>
       <div class="flex items-center gap-2">

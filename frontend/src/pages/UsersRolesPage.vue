@@ -104,7 +104,7 @@ async function confirmDelete() {
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-muted-foreground">Access Control</p>
-        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">Users / Roles</h2>
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">{{ t('navigation.usersRoles') }}</h2>
         <p class="text-sm text-muted-foreground mt-1">Manajemen pengguna dan role (Administrator only).</p>
       </div>
       <div class="flex items-center gap-2">
