@@ -98,9 +98,9 @@ async function confirmDelete() {
   try {
     await apiClient.deleteIncident(pendingDelete.value.id)
     data.value = data.value.filter((i) => i.id !== pendingDelete.value.id)
-    ui.pushToast({ title: 'Insiden dihapus', description: `${pendingDelete.value.code} berhasil dihapus.`, variant: 'success' })
+    ui.pushToast({ title: t('common.success'), description: `${pendingDelete.value.code} ${t('toast.deleted')}.`, variant: 'success' })
   } catch (err) {
-    ui.pushToast({ title: 'Gagal menghapus', description: err.data?.error || 'Tidak dapat menghapus insiden.', variant: 'destructive' })
+    ui.pushToast({ title: t('common.failed'), description: err.data?.error || t('pages.deleteFailed'), variant: 'destructive' })
   } finally {
     deleting.value = false
     confirmOpen.value = false
@@ -119,7 +119,7 @@ const statusOpts = ['Open', 'In Progress', 'Resolved', 'Closed'].map((v) => ({ l
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-muted-foreground">Incident Management</p>
-        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">Insiden Operasional</h2>
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">{{ t('pages.incidentsTitle') }}</h2>
         <p class="text-sm text-muted-foreground mt-1">Catat, tetapkan, dan pantau gangguan aset jaringan.</p>
       </div>
       <div class="flex items-center gap-2">
