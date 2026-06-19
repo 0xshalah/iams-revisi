@@ -70,23 +70,6 @@ export const useAuthStore = defineStore('auth', {
       await logoutPromise
     },
 
-    redirectToLogin() {
-      this.user = null
-      this.initialized = true
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        window.location.href = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
-      }
-    },
-
-    switchRole(role) {
-      // No longer supported in real auth; role is server-side.
-      // Kept for API compatibility with Paket 1 prototype.
-      if (!this.user) return
-      if (this.user.role_name === role) return
-      // In a real backend this would require re-login.
-      this.error = 'Silakan login ulang untuk mengganti role.'
-    },
-
     getRememberedEmail() {
       try {
         const raw = localStorage.getItem(REMEMBER_KEY)

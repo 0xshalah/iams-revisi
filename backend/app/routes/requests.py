@@ -6,7 +6,7 @@ from flask import Blueprint, g, jsonify, request
 from app.extensions import db
 from app.models import Asset, Department, ServiceRequest, User
 from app.utils.audit import log_audit
-from app.utils.decorators import admin_only, admin_or_operator, require_csrf, require_role
+from app.utils.decorators import admin_only, admin_or_operator, require_csrf
 from app.utils.pagination import paginate
 
 bp = Blueprint('requests', __name__, url_prefix='/api/requests')

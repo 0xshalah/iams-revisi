@@ -7,7 +7,7 @@ from flask import current_app, g, jsonify, request
 from app.extensions import db
 from app.models import User
 from app.utils.audit import get_client_ip, log_audit
-from app.utils.security import redact, sanitize_error_message
+from app.utils.security import sanitize_error_message
 
 
 def _set_auth_error(status: int, message: str):
@@ -113,9 +113,3 @@ def audit_action(action: str, resource_type: str, resource_id_key: str | None = 
             return response
         return decorated
     return decorator
-
-
-def safe_json():
-    """Return JSON body with sensitive values redacted."""
-    data = request.get_json(silent=True) or {}
-    return redact(data)

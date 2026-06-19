@@ -132,7 +132,6 @@ export const apiClient = {
   // Users / Roles (admin)
   listUsers: () => get('/users?per_page=1000'),
   createUser: (payload) => post('/users', payload),
-  getUser: (id) => get(`/users/${id}`),
   updateUser: (id, payload) => put(`/users/${id}`, payload),
   deleteUser: (id) => del(`/users/${id}`),
 
@@ -144,12 +143,9 @@ export const apiClient = {
     return get(`/assets${qs ? `?${qs}` : ''}`)
   },
   createAsset: (payload) => post('/assets', payload),
-  getAsset: (id) => get(`/assets/${id}`),
   updateAsset: (id, payload) => put(`/assets/${id}`, payload),
   deleteAsset: (id) => del(`/assets/${id}`),
-  getNetworkDetails: (id) => get(`/assets/${id}/network-details`),
   updateNetworkDetails: (id, payload) => put(`/assets/${id}/network-details`, payload),
-  getCredentialStatus: (id) => get(`/assets/${id}/credential-status`),
   listCredentials: (id) => get(`/assets/${id}/credentials`),
   createCredential: (id, payload) => post(`/assets/${id}/credentials`, payload),
   updateCredential: (id, cid, payload) => put(`/assets/${id}/credentials/${cid}`, payload),
@@ -162,7 +158,6 @@ export const apiClient = {
     return get(`/incidents${qs ? `?${qs}` : ''}`)
   },
   createIncident: (payload) => post('/incidents', payload),
-  getIncident: (id) => get(`/incidents/${id}`),
   updateIncident: (id, payload) => put(`/incidents/${id}`, payload),
   deleteIncident: (id) => del(`/incidents/${id}`),
 
@@ -172,7 +167,6 @@ export const apiClient = {
     return get(`/problems${qs ? `?${qs}` : ''}`)
   },
   createProblem: (payload) => post('/problems', payload),
-  getProblem: (id) => get(`/problems/${id}`),
   updateProblem: (id, payload) => put(`/problems/${id}`, payload),
   deleteProblem: (id) => del(`/problems/${id}`),
 
@@ -228,7 +222,6 @@ export const apiClient = {
     const qs = new URLSearchParams({ ...params, per_page: params.per_page || 1000 }).toString()
     return get(`/requests${qs ? `?${qs}` : ''}`)
   },
-  getRequest: (id) => get(`/requests/${id}`),
   createRequest: (payload) => post('/requests', payload),
   updateRequest: (id, payload) => put(`/requests/${id}`, payload),
   deleteRequest: (id) => del(`/requests/${id}`),
@@ -238,7 +231,6 @@ export const apiClient = {
     const qs = new URLSearchParams({ ...params, per_page: params.per_page || 1000 }).toString()
     return get(`/changes${qs ? `?${qs}` : ''}`)
   },
-  getChange: (id) => get(`/changes/${id}`),
   createChange: (payload) => post('/changes', payload),
   updateChange: (id, payload) => put(`/changes/${id}`, payload),
   deleteChange: (id) => del(`/changes/${id}`),
@@ -247,8 +239,6 @@ export const apiClient = {
 
   // Reports
   fullAssetReport: () => get('/reports/assets/full'),
-  assetStatusSummary: () => get('/reports/assets/status-summary'),
-  assetsByPo: (poNumber) => get(`/reports/assets/by-po?po_number=${encodeURIComponent(poNumber)}`),
   assetsWarrantyExpiring: (months = 3) => get(`/reports/assets/warranty-expiring?months=${months}`),
 }
 

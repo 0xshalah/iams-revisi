@@ -23,27 +23,11 @@ def list_departments():
     rows = Department.query.order_by(Department.name)
     return jsonify(paginate(rows))
 
-@bp.route('/departments/<int:dep_id>', methods=['GET'])
-@admin_or_operator
-def get_department(dep_id):
-    d = db.session.get(Department, dep_id)
-    if not d:
-        return jsonify({'error': 'Department not found'}), 404
-    return jsonify({'data': d.to_dict()})
-
 @bp.route('/locations', methods=['GET'])
 @admin_or_operator
 def list_locations():
     rows = Location.query.order_by(Location.name)
     return jsonify(paginate(rows))
-
-@bp.route('/locations/<int:loc_id>', methods=['GET'])
-@admin_or_operator
-def get_location(loc_id):
-    l = db.session.get(Location, loc_id)
-    if not l:
-        return jsonify({'error': 'Location not found'}), 404
-    return jsonify({'data': l.to_dict()})
 
 @bp.route('/categories', methods=['GET'])
 @admin_or_operator
@@ -51,41 +35,17 @@ def list_categories():
     rows = Category.query.order_by(Category.name)
     return jsonify(paginate(rows))
 
-@bp.route('/categories/<int:cat_id>', methods=['GET'])
-@admin_or_operator
-def get_category(cat_id):
-    c = db.session.get(Category, cat_id)
-    if not c:
-        return jsonify({'error': 'Category not found'}), 404
-    return jsonify({'data': c.to_dict()})
-
 @bp.route('/brands', methods=['GET'])
 @admin_or_operator
 def list_brands():
     rows = Brand.query.order_by(Brand.name)
     return jsonify(paginate(rows))
 
-@bp.route('/brands/<int:br_id>', methods=['GET'])
-@admin_or_operator
-def get_brand(br_id):
-    b = db.session.get(Brand, br_id)
-    if not b:
-        return jsonify({'error': 'Brand not found'}), 404
-    return jsonify({'data': b.to_dict()})
-
 @bp.route('/models', methods=['GET'])
 @admin_or_operator
 def list_models():
     rows = DeviceModel.query.order_by(DeviceModel.name)
     return jsonify(paginate(rows))
-
-@bp.route('/models/<int:md_id>', methods=['GET'])
-@admin_or_operator
-def get_model(md_id):
-    m = db.session.get(DeviceModel, md_id)
-    if not m:
-        return jsonify({'error': 'Model not found'}), 404
-    return jsonify({'data': m.to_dict()})
 
 # ── Departments CRUD (admin only) ───────────────────────────────────────────
 

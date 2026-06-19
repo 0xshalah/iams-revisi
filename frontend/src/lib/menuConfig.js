@@ -20,7 +20,3 @@ export function menuForRole(role) {
 export function labelForRoute(routeName) {
   return navMenu.find((m) => m.name === routeName)?.label || 'Dashboard'
 }
-
-export function menuItemByName(name) {
-  return navMenu.find((m) => m.name === name)
-}

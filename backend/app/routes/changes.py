@@ -1,9 +1,9 @@
 """Change Management blueprint."""
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
 from flask import Blueprint, g, jsonify, request
 
-from app.extensions import db, limiter
+from app.extensions import db
 from app.models import Asset, ChangeRequest, Incident, Problem, ServiceRequest, User
 from app.utils.audit import log_audit
 from app.utils.decorators import admin_only, admin_or_operator, require_csrf

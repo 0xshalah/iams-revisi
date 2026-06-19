@@ -9,10 +9,6 @@ export const useLocaleStore = defineStore('locale', {
   }),
   getters: {
     current: () => i18n.global.locale.value,
-    currentLabel() {
-      const labels = { id: 'Bahasa Indonesia', en: 'English' }
-      return labels[i18n.global.locale.value] || i18n.global.locale.value
-    },
   },
   actions: {
     setLocale(code) {
