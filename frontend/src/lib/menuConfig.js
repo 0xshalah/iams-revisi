@@ -7,7 +7,6 @@ export const navMenu = [
   { name: 'problems',    label: 'Problems',     icon: 'puzzle',    roles: ['Administrator', 'Operator'], i18nKey: 'navigation.problems' },
   { name: 'requests',    label: 'Requests',     icon: 'clipboard', roles: ['Administrator', 'Operator'], i18nKey: 'navigation.requests' },
   { name: 'changes',     label: 'Changes',      icon: 'refresh',   roles: ['Administrator', 'Operator'], i18nKey: 'navigation.changes' },
-  { name: 'licenses',    label: 'Licenses',     icon: 'file-text', roles: ['Administrator', 'Operator'], i18nKey: 'navigation.reports' },
   { name: 'master-data', label: 'Master Data',  icon: 'database',  roles: ['Administrator'],              i18nKey: 'navigation.masterData' },
   { name: 'users-roles', label: 'Users / Roles',icon: 'users',     roles: ['Administrator'],              i18nKey: 'navigation.usersRoles' },
   { name: 'audit-logs',  label: 'Audit Logs',   icon: 'history',   roles: ['Administrator'],              i18nKey: 'navigation.auditLogs' },
