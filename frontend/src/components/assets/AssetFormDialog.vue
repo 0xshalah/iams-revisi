@@ -266,7 +266,7 @@ async function submit() {
       <div v-if="!isCreate" class="w-full text-left border-t border-border pt-2 pb-1 mb-1">
         <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Kredensial Perangkat</p>
         <div v-if="credentials.length" class="space-y-1 mb-1.5">
-          <div v-for="cred in credentials" :key="cred.id" class="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-2 py-1">
+          <div v-for="cred in credentials" :key="cred.id" :class="['flex items-center gap-2 rounded-md border px-2 py-1 transition-colors', editingCredId === cred.id ? 'border-primary bg-primary/5' : 'border-border bg-muted/30']">
             <span class="text-[11px] font-medium">{{ cred.credential_type }}</span>
             <span class="text-[10px] text-muted-foreground">{{ cred.username || '-' }}</span>
             <span class="text-[11px] font-mono text-muted-foreground">••••••••</span>
@@ -281,7 +281,8 @@ async function submit() {
           <Select v-model="credForm.credential_type" :options="credTypeOpts" class="h-7 text-[11px] px-1.5" />
           <Input v-model="credForm.username" placeholder="User" class="h-7 text-[11px] px-1.5" />
           <Input v-model="credForm.password" type="password" placeholder="Pass" autocomplete="off" class="h-7 text-[11px] px-1.5 col-span-2 sm:col-span-2" />
-          <Button size="xs" class="h-7 text-[10px] sm:col-span-1" :disabled="!credForm.password.trim()" @click="addOrUpdateCredential">{{ editingCredId ? 'Update' : '+ Tambah' }}</Button>
+          <Button size="xs" class="h-7 text-[10px] sm:col-span-1" :disabled="!editingCredId && !credForm.password.trim()" @click="addOrUpdateCredential">{{ editingCredId ? 'Update' : '+ Tambah' }}</Button>
+          <Button v-if="editingCredId" variant="ghost" size="xs" class="h-7 text-[10px]" @click="cancelEdit">Batal</Button>
         </div>
       </div>
       <div class="flex items-center justify-end gap-2 w-full">
