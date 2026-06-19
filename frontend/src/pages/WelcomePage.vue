@@ -30,7 +30,7 @@ const t = computed(() => ({
   },
   stats: [
     { value: '17', label: _('Fitur PRD', 'PRD Features') },
-    { value: '29', label: _('Test Otomatis', 'Automated Tests') },
+    { value: '42', label: _('Test Otomatis', 'Automated Tests') },
     { value: 'ID/EN', label: _('Bahasa', 'Languages') },
   ],
   trust: {

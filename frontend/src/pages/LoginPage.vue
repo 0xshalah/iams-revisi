@@ -8,6 +8,7 @@ import { useThemeStore } from '@/stores/theme'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
+import AnimatedGradient from '@/components/ui/AnimatedGradient.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -87,16 +88,16 @@ const year = computed(() => new Date().getFullYear())
 
           <div class="mt-10 grid grid-cols-3 gap-3 max-w-sm">
             <div class="rounded-lg bg-white/5 border border-white/10 p-3">
-              <p class="text-2xl font-bold text-indigo-300">100%</p>
-              <p class="text-[10px] uppercase tracking-wider text-slate-400 mt-1">PRD Compliant</p>
+              <p class="text-2xl font-bold text-indigo-300">72</p>
+              <p class="text-[10px] uppercase tracking-wider text-slate-400 mt-1">API Endpoints</p>
             </div>
             <div class="rounded-lg bg-white/5 border border-white/10 p-3">
-              <p class="text-2xl font-bold text-amber-300">29</p>
-              <p class="text-[10px] uppercase tracking-wider text-slate-400 mt-1">Test Otomatis</p>
+              <p class="text-2xl font-bold text-amber-300">42</p>
+              <p class="text-[10px] uppercase tracking-wider text-slate-400 mt-1">Automated Tests</p>
             </div>
             <div class="rounded-lg bg-white/5 border border-white/10 p-3">
               <p class="text-2xl font-bold text-rose-300">ID/EN</p>
-              <p class="text-[10px] uppercase tracking-wider text-slate-400 mt-1">2 Bahasa</p>
+              <p class="text-[10px] uppercase tracking-wider text-slate-400 mt-1">2 Languages</p>
             </div>
           </div>
         </div>
@@ -106,7 +107,8 @@ const year = computed(() => new Date().getFullYear())
     </aside>
 
     <!-- Right form panel -->
-    <section class="flex-1 flex items-center justify-center p-6 sm:p-10 relative">
+    <section class="flex-1 flex items-center justify-center p-6 sm:p-10 relative overflow-hidden">
+      <AnimatedGradient class="z-0 opacity-20" />
       <button
         class="absolute top-5 right-5 h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-secondary text-muted-foreground"
         data-testid="login-theme-toggle"
