@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import apiClient from '@/services/apiClient'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -14,6 +15,7 @@ import { formatDateShort } from '@/lib/utils'
 
 const ui = useUiStore()
 const months = ref(3)
+const { t } = useI18n()
 const loading = ref(true)
 const error = ref(null)
 const data = ref([])

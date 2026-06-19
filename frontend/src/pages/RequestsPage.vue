@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '@/services/apiClient'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -18,6 +19,7 @@ import Pagination from '@/components/ui/Pagination.vue'
 
 const ui = useUiStore()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const loading = ref(true)
 const error = ref(null)

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '@/services/apiClient'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -20,6 +21,7 @@ import { formatDate, timeAgo } from '@/lib/utils'
 
 const ui = useUiStore()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const data = ref([])
 const users = ref([])

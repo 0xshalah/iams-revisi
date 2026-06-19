@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '@/services/apiClient'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Input from '@/components/ui/Input.vue'
